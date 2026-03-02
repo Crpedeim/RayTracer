@@ -1,6 +1,5 @@
 # Ray Tracer in C++
-
-![Final Render](./RayTracing/image.ppm)
+![Final Render](https://github.com/user-attachments/assets/80918956-4ab1-4c8d-af35-253f926677ff)
 
 A path tracer built from scratch in C++ following Peter Shirley's [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html). Renders photorealistic images with diffuse, metallic, and glass materials, depth of field, and antialiasing — all computed on the CPU with no external graphics libraries.
 
