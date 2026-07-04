@@ -14,3 +14,11 @@ add_executable(RayTracing src/main.cpp)
 # This helps the compiler find header files (like vec3.h) inside 'src'
 # when you add them later
 target_include_directories(RayTracing PUBLIC src)
+
+# ── Multithreading via OpenMP ────────────────────────────────────────────────
+# Parallelizes the render loop across CPU cores. If OpenMP isn't available the
+# build still works — it just runs single-threaded.
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(RayTracing PUBLIC OpenMP::OpenMP_CXX)
+endif()
