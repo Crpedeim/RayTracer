@@ -31,17 +31,33 @@ class camera {
 
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
+        // Render into a framebuffer so worker threads never touch std::cout
+        // (concurrent writes would corrupt the PPM). Row-major: [j*width + i].
+        std::vector<color> framebuffer(std::size_t(image_width) * image_height);
+
+        std::atomic<int> scanlines_done{0};
+
+        // Parallelize across scanlines. Each pixel is independent, so this is
+        // embarrassingly parallel; dynamic scheduling balances uneven rows
+        // (some rays bounce far more than others).
+        #pragma omp parallel for schedule(dynamic, 1)
         for (int j = 0; j < image_height; j++) {
-            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
             for (int i = 0; i < image_width; i++) {
                 color pixel_color(0,0,0);
                 for (int sample = 0; sample < samples_per_pixel; sample++) {
                     ray r = get_ray(i, j);
-                    pixel_color += ray_color(r, max_depth ,world);
+                    pixel_color += ray_color(r, max_depth, world);
                 }
-                write_color(std::cout, pixel_samples_scale * pixel_color);
+                framebuffer[std::size_t(j) * image_width + i] = pixel_samples_scale * pixel_color;
             }
+            int done = ++scanlines_done;
+            std::clog << "\rScanlines remaining: " << (image_height - done) << ' ' << std::flush;
         }
+
+        // Write the completed image sequentially, in scanline order.
+        for (int j = 0; j < image_height; j++)
+            for (int i = 0; i < image_width; i++)
+                write_color(std::cout, framebuffer[std::size_t(j) * image_width + i]);
 
         std::clog << "\rDone.                 \n";
     }
